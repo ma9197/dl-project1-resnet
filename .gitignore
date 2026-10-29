@@ -1,0 +1,10 @@
+# datasets (downloaded separately, see README)
+data/
+kaggle_data/
+# course handout
+project1.pdf
+# model weights: keep only the final model
+runs/*/model.pt
+!runs/final_B_ta_e200/model.pt
+__pycache__/
+.ipynb_checkpoints/

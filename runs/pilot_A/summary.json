@@ -1,0 +1,44 @@
+{
+ "name": "pilot_A",
+ "params": 4327754,
+ "channels": [
+  64,
+  128,
+  256
+ ],
+ "blocks": [
+  3,
+  3,
+  3
+ ],
+ "epochs": 15,
+ "full_train": false,
+ "val_acc": 0.9226,
+ "cifar10_test_acc": 0.9168,
+ "cifar10_test_acc_flipTTA": 0.9221,
+ "minutes": 2.237647259235382,
+ "args": {
+  "name": "pilot_A",
+  "channels": [
+   64,
+   128,
+   256
+  ],
+  "blocks": [
+   3,
+   3,
+   3
+  ],
+  "kernel": 3,
+  "skip_kernel": 1,
+  "epochs": 15,
+  "bs": 128,
+  "lr": 0.1,
+  "wd": 0.0005,
+  "smoothing": 0.1,
+  "cutout": 16,
+  "warmup": 2,
+  "full_train": false,
+  "seed": 0
+ }
+}

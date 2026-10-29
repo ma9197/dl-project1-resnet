@@ -1,0 +1,17 @@
+pilot_D: channels [64, 128, 256, 320] blocks [2, 2, 2, 1] | 4,521,034 params | train 45000
+ep   1 train 1.724/0.4276 val 1.439/0.4954 | 10s
+ep   2 train 1.397/0.5963 val 0.949/0.6670 | 19s
+ep   3 train 1.241/0.6713 val 0.936/0.6840 | 28s
+ep   4 train 1.130/0.7244 val 0.737/0.7526 | 37s
+ep   5 train 1.072/0.7518 val 0.862/0.7318 | 46s
+ep   6 train 1.028/0.7710 val 0.590/0.8104 | 54s
+ep   7 train 0.982/0.7923 val 0.666/0.7782 | 61s
+ep   8 train 0.941/0.8101 val 0.622/0.8052 | 70s
+ep   9 train 0.906/0.8267 val 0.561/0.8260 | 78s
+ep  10 train 0.869/0.8425 val 0.442/0.8692 | 83s
+ep  11 train 0.833/0.8587 val 0.405/0.8792 | 90s
+ep  12 train 0.792/0.8768 val 0.341/0.9064 | 95s
+ep  13 train 0.759/0.8926 val 0.336/0.9056 | 100s
+ep  14 train 0.734/0.9045 val 0.303/0.9166 | 105s
+ep  15 train 0.720/0.9100 val 0.301/0.9172 | 109s
+FINAL pilot_D: params 4,521,034 | CIFAR-10 test acc 0.9148 (flip TTA 0.9186) | 1.8 min

@@ -1,0 +1,45 @@
+{
+ "name": "e50_B_ta",
+ "params": 4781374,
+ "channels": [
+  84,
+  168,
+  336
+ ],
+ "blocks": [
+  2,
+  2,
+  2
+ ],
+ "epochs": 50,
+ "full_train": false,
+ "val_acc": 0.9504,
+ "cifar10_test_acc": 0.948,
+ "cifar10_test_acc_flipTTA": 0.9518,
+ "minutes": 7.166130276521047,
+ "args": {
+  "name": "e50_B_ta",
+  "channels": [
+   84,
+   168,
+   336
+  ],
+  "blocks": [
+   2,
+   2,
+   2
+  ],
+  "kernel": 3,
+  "skip_kernel": 1,
+  "epochs": 50,
+  "bs": 128,
+  "lr": 0.1,
+  "wd": 0.0005,
+  "smoothing": 0.1,
+  "cutout": 16,
+  "warmup": 2,
+  "trivialaug": true,
+  "full_train": false,
+  "seed": 0
+ }
+}
