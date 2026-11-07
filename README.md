@@ -10,7 +10,7 @@ A residual network trained **from scratch** on CIFAR-10 with **4,781,374 trainab
 | CIFAR-10 test accuracy (10,000 images) | **97.82%** (97.89% with horizontal-flip test-time augmentation) |
 | Parameters | 4,781,374 |
 | Kaggle public leaderboard | **0.907** (final model `kd10_B_e1200_cmT_s3`) |
-| Final leaderboard | to be added after the competition closes |
+| Final leaderboard (hidden half) | **0.874**, rank 28 of 81 teams (kd8, the better of the two final picks there; kd10 scored 0.871) |
 | Training time | about 5 hours on one A100 GPU, plus the teachers |
 
 `results.ipynb` shows everything executed: the model summary and parameter count, the final test accuracy,

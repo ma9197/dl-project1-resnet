@@ -55,12 +55,15 @@ nb.cells = [
          "plt.xlabel('predicted'); plt.ylabel('true'); plt.title('Confusion matrix (CIFAR-10 test)')\n"
          "plt.tight_layout(); plt.savefig('figures/confusion.png', dpi=160); plt.show()"),
     md("## Kaggle submission (2,000 held-out images, labels hidden)\n"
-       "Public scores of every upload, copied from the competition's Submissions page. The public score uses about half of the "
-       "images. The last 4 rows are test-time ideas that I tried and did not use (`predict.py --shifts`, `test_time_checks.py`)."),
-    code("scores = [('final_B_ta_e200', 0.884), ('kd_B_e300', 0.885), ('kd3_B_e800', 0.887), ('kd5_B_e800_cm', 0.895),\n"
-         "          ('kd7_B_e1200_cm05_s1', 0.890), ('kd6_B_e1200_cm1', 0.903), ('kd8_B_e1200_cmT', 0.907), (FINAL, 0.907),\n"
-         "          (FINAL + '_shift9', 0.902), (FINAL + '_shift5', 0.903), ('kd8_B_e1200_cmT_shift9', 0.902), (FINAL + '_bal', 0.895)]\n"
-         "for name, score in scores: print(f'{name:35s} {score:.3f}')"),
+       "Public and private scores of every upload, copied from the competition's Submissions page. Each uses about half of the "
+       "images; the private half was shown only after the competition closed. The last 4 rows are test-time ideas that I tried and did not use (`predict.py --shifts`, `test_time_checks.py`)."),
+    code("scores = [('final_B_ta_e200', 0.884, 0.852), ('kd_B_e300', 0.885, 0.863), ('kd3_B_e800', 0.887, 0.867),\n"
+         "          ('kd5_B_e800_cm', 0.895, 0.867), ('kd7_B_e1200_cm05_s1', 0.890, 0.872), ('kd6_B_e1200_cm1', 0.903, 0.871),\n"
+         "          ('kd8_B_e1200_cmT', 0.907, 0.874), (FINAL, 0.907, 0.871), (FINAL + '_shift9', 0.902, 0.867),\n"
+         "          (FINAL + '_shift5', 0.903, 0.873), ('kd8_B_e1200_cmT_shift9', 0.902, 0.878), (FINAL + '_bal', 0.895, 0.879)]\n"
+         "print(f\"{'upload':35s} public  private\")\n"
+         "for name, pub, priv in scores: print(f'{name:35s} {pub:.3f}   {priv:.3f}')\n"
+         "print('Final leaderboard: rank 28 of 81, private 0.874 (kd8, the better of the two final picks on the hidden half)')"),
     code("import subprocess, sys\nprint(subprocess.run([sys.executable, 'predict.py', '--run', FINAL], capture_output=True, text=True).stdout)\n"
          "sub = list(csv.DictReader(open(f'submissions/{FINAL}.csv')))\nprint(len(sub), 'rows; first rows:', sub[:3])"),
 ]

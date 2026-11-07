@@ -41,7 +41,7 @@ resolution, strong data augmentation (crop, flip, Cutout, TrivialAugment and Cut
 knowledge distillation from larger teachers that are used only during training. The plain model reaches 96.73\%
 on the CIFAR-10 test set (97.00\% when averaging an image and its mirror image); the distilled model with the same
 architecture reaches 97.82\% (97.89\%). On the competition's held-out test set it scores 0.907 on the public
-leaderboard, up from 0.884 for the plain model. Main findings: (1) three wide residual layers beat ResNet-18 style
+leaderboard, up from 0.884 for the plain model, and my final entry scores 0.874 on the hidden half (rank 28 of 81). Main findings: (1) three wide residual layers beat ResNet-18 style
 four-layer layouts at this budget; (2) the training recipe mattered more than the layout; (3) distillation with long
 training added about 0.9 points on CIFAR-10 at no inference cost; (4) on the competition images, which come from a
 shifted distribution, more CutMix raised the score more than its CIFAR-10 accuracy suggested; (5) test-time
@@ -198,25 +198,26 @@ Big: channels 160-320-640, four blocks per layer.}
 \centering
 \small
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{lcccccc}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lccccccc}
 \toprule
-Run & Teachers & CM & Ep. & Test & TTA & Public \\
+Run & Teachers & CM & Ep. & Test & TTA & Pub. & Priv. \\
 \midrule
-plain & none & 0 & 200 & 96.73 & 97.00 & 0.884 \\
-kd & 4B & 0 & 300 & 97.10 & 97.27 & 0.885 \\
-kd2 & 2W+2B & 0 & 500 & 97.51 & 97.58 & \\
-kd3 & 2W+2B & 0 & 800 & 97.57 & 97.69 & 0.887 \\
-kd4 & 2L+2W & 0 & 800 & 97.52 & 97.68 & \\
-kd5 & 2L+2W & 0.5 & 800 & 97.61 & 97.73 & 0.895 \\
-kd7 & 2L+2W & 0.5 & 1200 & 97.76 & 97.86 & 0.890 \\
-kd6 & 2L+2W & 1 & 1200 & 97.69 & 97.77 & 0.903 \\
-kd8 & 2C+2W & 1 & 1200 & 97.67 & 97.72 & 0.907 \\
-\textbf{kd10} & \textbf{2C+2W} & \textbf{1} & \textbf{1200} & \textbf{97.82} & \textbf{97.89} & \textbf{0.907} \\
+plain & none & 0 & 200 & 96.73 & 97.00 & .884 & .852 \\
+kd & 4B & 0 & 300 & 97.10 & 97.27 & .885 & .863 \\
+kd2 & 2W+2B & 0 & 500 & 97.51 & 97.58 & & \\
+kd3 & 2W+2B & 0 & 800 & 97.57 & 97.69 & .887 & .867 \\
+kd4 & 2L+2W & 0 & 800 & 97.52 & 97.68 & & \\
+kd5 & 2L+2W & 0.5 & 800 & 97.61 & 97.73 & .895 & .867 \\
+kd7 & 2L+2W & 0.5 & 1200 & 97.76 & 97.86 & .890 & .872 \\
+kd6 & 2L+2W & 1 & 1200 & 97.69 & 97.77 & .903 & .871 \\
+kd8 & 2C+2W & 1 & 1200 & 97.67 & 97.72 & .907 & .874 \\
+\textbf{kd10} & \textbf{2C+2W} & \textbf{1} & \textbf{1200} & \textbf{97.82} & \textbf{97.89} & \textbf{.907} & \textbf{.871} \\
 \bottomrule
 \end{tabular}
 \caption{All students use layout B (4.78M parameters). Teachers: B, W(ide), L (big), C (big + CutMix). CM: probability
-of CutMix per batch. Test and TTA: CIFAR-10 accuracy in \%. Public: Kaggle public score, blank if not uploaded. kd8 and
-kd10 differ only in seed.}
+of CutMix per batch. Test and TTA: CIFAR-10 accuracy in \%. Pub.\ and Priv.: Kaggle score on the public and the hidden
+half, blank if not uploaded. kd8 and kd10 differ only in seed.}
 \label{tab:kd}
 \end{table}
 
@@ -242,7 +243,8 @@ image, and the teachers see the mixed image, so the distillation target is simpl
 On CIFAR-10 this gave small gains that are close to the difference between seeds. On the competition images it did
 more: the public score was 0.887 without it (kd3), 0.895 at CM $=0.5$ with the bigger teachers (kd5), and 0.903 at
 CM $=1$ (kd6). Training the big teachers with CutMix as well raised it to 0.907 (kd8 and kd10). Since each public score
-has noise (see below), I read this as a trend and not as an exact ranking of the runs.
+has noise (see below), I read this as a trend and not as an exact ranking of the runs. On the hidden half, shown after
+the competition, the same steps gave a smaller gain (0.867, 0.867, 0.871, 0.874).
 
 \subsection{Compute}
 The pilots, the 50- and 200-epoch runs, and the first distillation round ran on one RTX 4090 Laptop GPU (32 minutes
@@ -341,31 +343,38 @@ like natural CIFAR images (no added noise or compression), but they are slightly
 121.5) and the model is less confident on them (mean top-class probability 0.78 against 0.83). Such re-collected test
 sets are known to lower accuracy by several points \cite{recht2019imagenet}. The public score uses half of the images
 (about 1,000), so it has a standard error of roughly 1 point; each image is worth 0.001. Table~\ref{tab:kd} lists the
-main submissions, and Kaggle lets me pick two for the final ranking: kd10 and kd8.
+main submissions, and Kaggle lets me pick two for the final ranking: kd10 and kd8. The final score is the better of
+the two on the hidden half: 0.874 (kd8), rank 28 of 81 teams.
 
 CIFAR-10 accuracy was a weak guide to this score. kd7 beat kd6 on CIFAR-10 (97.86\% against 97.77\%) but scored 1.3
 points lower, and kd8 and kd10 tie at 0.907 while differing on 92 of the 2,000 predictions. The final model changes
 7.0\% of the competition predictions compared with the plain model, against 2.1\% of the CIFAR-10 predictions, so the
 two test sets behave differently.
 
+The hidden half was harder than the public half (0.86 to 0.88 against 0.88 to 0.91), and it reordered close
+submissions: the class-balanced predictions, worst on the public half among my late uploads, were best on the hidden
+half (0.879), and the shifted kd8 beat plain kd8 there. Differences of a few images on either half are noise. Over the
+whole project, distillation still raised the hidden-half score from 0.852 to 0.871 to 0.874.
+
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{lcc}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
 \toprule
-Prediction & CIFAR-10 & Public \\
+Prediction & CIFAR-10 & Public & Private \\
 \midrule
-\textbf{kd10, flip TTA (final)} & \textbf{97.91} & \textbf{0.907} \\
-kd10 + 5 shifts & 97.94 & 0.903 \\
-kd10 + 9 shifts & 97.95 & 0.902 \\
-kd8, flip TTA (other pick) & 97.71 & 0.907 \\
-kd8 + 9 shifts & 97.82 & 0.902 \\
-kd10 + class balancing & see text & 0.895 \\
+\textbf{kd10, flip TTA (final)} & \textbf{97.91} & \textbf{0.907} & \textbf{0.871} \\
+kd10 + 5 shifts & 97.94 & 0.903 & 0.873 \\
+kd10 + 9 shifts & 97.95 & 0.902 & 0.867 \\
+kd8, flip TTA (other pick) & 97.71 & 0.907 & 0.874 \\
+kd8 + 9 shifts & 97.82 & 0.902 & 0.878 \\
+kd10 + class balancing & see text & 0.895 & 0.879 \\
 \bottomrule
 \end{tabular}
 \caption{Test-time ideas I tried and did not use. Shifts: also averaging 1-pixel shifts of the image. CIFAR-10 accuracy
-here averages softmax outputs, as the Kaggle predictions do. Final leaderboard rank and private score: \todo{[rank] of
-[teams], [score]}.}
+here averages softmax outputs, as the Kaggle predictions do. Private: the hidden half, shown only after the competition
+closed. Final leaderboard: rank 28 of 81 teams, 0.874 (kd8, the better of my two picks on the hidden half).}
 \label{tab:kaggle}
 \end{table}
 
@@ -381,7 +390,8 @@ come from heavily augmented images. Mixing 20\% of them into the training statis
 CIFAR-10 subsets this gave 98.21\% against 98.02\% when the subset had equal classes, but 96.20\% against 97.90\% on
 random subsets. On Kaggle it changed 66 predictions and scored 0.895, which is 12 images worse on the public half.
 \item \textbf{Shift averaging} (Table~\ref{tab:kaggle}). It gained up to 0.11 points on CIFAR-10 but lost 4 or 5 images
-on the public half, on each model I uploaded.
+on the public half, on each model I uploaded. On the hidden half the results were mixed (Table~\ref{tab:kaggle}), so I
+cannot call either idea better or worse than plain flip TTA.
 \end{itemize}
 
 \section{Lessons Learned}
@@ -396,11 +406,13 @@ TrivialAugment, which was the better choice at 200 epochs.
 budget allows, since only the student is submitted. Going from 11M to 37M teachers no longer helped by itself; CutMix
 and longer schedules did.
 \item \textbf{CIFAR-10 is a weak guide on a shifted test set.} Regularization that changed little on CIFAR-10 moved the
-competition score the most, and test-time ideas that looked safe on CIFAR-10 lowered it.
+competition score the most, and test-time ideas that looked safe on CIFAR-10 lowered the public score.
+\item \textbf{Half a test set is a noisy judge.} With about 1,000 images per half, choices made on the public score
+did not all hold on the hidden half; only large, consistent gains (here, distillation) did.
 \item \textbf{A fast pipeline pays off.} Two-minute pilots made it cheap to test ideas before long runs.
 \item \textbf{Limitations.} I used the CIFAR-10 test set to compare the final candidates, so those numbers may be
-slightly optimistic. I also chose among 12 uploads using the public score, so 0.907 is probably a little optimistic
-too; the private score is the real held-out check. Two seeds of the same recipe gave 97.72\% and 97.89\%, so smaller
+slightly optimistic. I also chose among 12 uploads using the public score, and the hidden half confirmed that 0.907
+was optimistic: my final entry scored 0.874 there. Two seeds of the same recipe gave 97.72\% and 97.89\%, so smaller
 gaps on CIFAR-10 mean little. I did not tune the distillation settings ($\alpha$, $T$).
 \end{itemize}
 
