@@ -9,12 +9,11 @@ nb.cells = [
        "Mirsaid Abbasov (ma9197), NYU Deep Learning, Fall 2026. Solo project.\n\n"
        "This notebook loads the trained models and logs produced by `train.py`, prints the parameter count and the "
        "final test accuracy, plots the training curves, compares the experiments, and writes the Kaggle submission.\n\n"
-       "Reproduce the final model (about 32 min on one RTX 4090 Laptop GPU):\n"
-       "```\npython train.py --name final_B_ta_e200 --channels 84 168 336 --blocks 2 2 2 --epochs 200 --trivialaug --full-train\n"
-       "python predict.py --run final_B_ta_e200\n```"),
+       "The final model is `kd10_B_e1200_cmT_s3`, a 4.78M student distilled from 4 larger teachers (the teachers are never "
+       "submitted). `experiments.sh` has the command for every run; `README.md` has the commands for the final model."),
     code("import json, csv\nfrom pathlib import Path\nimport numpy as np, torch\nimport matplotlib.pyplot as plt\n"
          "from torchsummary import summary\nfrom train import ResNet, count_params, load_cifar, evaluate\n"
-         "FINAL = 'final_B_ta_e200'\nprint(torch.__version__, torch.cuda.get_device_name())"),
+         "FINAL = 'kd10_B_e1200_cmT_s3'\nprint(torch.__version__, torch.cuda.get_device_name())"),
     md("## Final model: architecture and number of parameters"),
     code("ck = torch.load(f'runs/{FINAL}/model.pt', map_location='cuda', weights_only=False)\na = ck['args']\n"
          "model = ResNet(a['channels'], a['blocks'], a['kernel'], a['skip_kernel']).cuda()\n"
@@ -35,12 +34,14 @@ nb.cells = [
          "ax[0].set(xlabel='epoch', ylabel='training loss (label smoothing 0.1)', title='Training loss')\n"
          "ax[1].set(xlabel='epoch', ylabel='CIFAR-10 test accuracy (%)', title='Test accuracy', ylim=(80, 98))\n"
          "for x in ax: x.grid(alpha=0.3); x.legend()\nplt.tight_layout(); plt.savefig('figures/curves.png', dpi=160); plt.show()"),
+    md("## Distillation and CutMix (accuracy against the fraction of each run's schedule)"),
+    code("import runpy\nrunpy.run_path('make_figures.py')\nplt.show()"),
     md("## All experiments"),
     code("rows = []\nfor s in sorted(Path('runs').glob('*/summary.json')):\n    d = json.loads(s.read_text())\n"
-         "    rows.append((d['name'], d['params'], d['channels'], d['blocks'], d['epochs'], d['args'].get('trivialaug', False),\n"
+         "    rows.append((d['name'], d['params'], d['channels'], d['blocks'], d['epochs'], d['args'].get('cutmix', 0),\n"
          "                 100*d['cifar10_test_acc'], 100*d['cifar10_test_acc_flipTTA'], d['minutes']))\n"
-         "print(f\"{'run':20s} {'params':>10s} {'channels':16s} {'blocks':10s} {'ep':>4s} {'TA':>5s} {'test':>7s} {'+TTA':>7s} {'min':>5s}\")\n"
-         "for r in rows:\n    print(f'{r[0]:20s} {r[1]:>10,} {str(r[2]):16s} {str(r[3]):10s} {r[4]:>4d} {str(r[5]):>5s} {r[6]:6.2f}% {r[7]:6.2f}% {r[8]:5.1f}')"),
+         "print(f\"{'run':20s} {'params':>10s} {'channels':16s} {'blocks':10s} {'ep':>4s} {'CM':>5s} {'test':>7s} {'+TTA':>7s} {'min':>5s}\")\n"
+         "for r in rows:\n    print(f'{r[0]:20s} {r[1]:>10,} {str(r[2]):16s} {str(r[3]):10s} {r[4]:>4d} {r[5]:>5} {r[6]:6.2f}% {r[7]:6.2f}% {r[8]:5.1f}')"),
     md("## Per-class accuracy of the final model"),
     code("with torch.no_grad():\n    from train import normalize\n    preds = []\n    for k in range(0, 10000, 1000):\n"
          "        xb = normalize(xte[k:k+1000])\n        with torch.autocast('cuda', dtype=torch.bfloat16):\n"
@@ -53,7 +54,13 @@ nb.cells = [
          "plt.xticks(range(10), classes, rotation=60); plt.yticks(range(10), classes)\n"
          "plt.xlabel('predicted'); plt.ylabel('true'); plt.title('Confusion matrix (CIFAR-10 test)')\n"
          "plt.tight_layout(); plt.savefig('figures/confusion.png', dpi=160); plt.show()"),
-    md("## Kaggle submission (2,000 held-out images, labels hidden)"),
+    md("## Kaggle submission (2,000 held-out images, labels hidden)\n"
+       "Public scores of every upload, copied from the competition's Submissions page. The public score uses about half of the "
+       "images. The last 4 rows are test-time ideas that I tried and did not use (`predict.py --shifts`, `test_time_checks.py`)."),
+    code("scores = [('final_B_ta_e200', 0.884), ('kd_B_e300', 0.885), ('kd3_B_e800', 0.887), ('kd5_B_e800_cm', 0.895),\n"
+         "          ('kd7_B_e1200_cm05_s1', 0.890), ('kd6_B_e1200_cm1', 0.903), ('kd8_B_e1200_cmT', 0.907), (FINAL, 0.907),\n"
+         "          (FINAL + '_shift9', 0.902), (FINAL + '_shift5', 0.903), ('kd8_B_e1200_cmT_shift9', 0.902), (FINAL + '_bal', 0.895)]\n"
+         "for name, score in scores: print(f'{name:35s} {score:.3f}')"),
     code("import subprocess, sys\nprint(subprocess.run([sys.executable, 'predict.py', '--run', FINAL], capture_output=True, text=True).stdout)\n"
          "sub = list(csv.DictReader(open(f'submissions/{FINAL}.csv')))\nprint(len(sub), 'rows; first rows:', sub[:3])"),
 ]

@@ -1,0 +1,50 @@
+{
+ "name": "big_t4",
+ "params": 36690090,
+ "channels": [
+  160,
+  320,
+  640
+ ],
+ "blocks": [
+  4,
+  4,
+  4
+ ],
+ "epochs": 400,
+ "full_train": true,
+ "val_acc": 0.9785,
+ "cifar10_test_acc": 0.9785,
+ "cifar10_test_acc_flipTTA": 0.9799,
+ "minutes": 98.32336196104686,
+ "args": {
+  "name": "big_t4",
+  "channels": [
+   160,
+   320,
+   640
+  ],
+  "blocks": [
+   4,
+   4,
+   4
+  ],
+  "kernel": 3,
+  "skip_kernel": 1,
+  "epochs": 400,
+  "bs": 128,
+  "lr": 0.1,
+  "wd": 0.0005,
+  "smoothing": 0.1,
+  "cutout": 16,
+  "warmup": 2,
+  "trivialaug": true,
+  "full_train": true,
+  "seed": 24,
+  "teachers": [],
+  "kd_alpha": 0.1,
+  "kd_T": 1,
+  "cutmix": 1,
+  "teacher_only": true
+ }
+}

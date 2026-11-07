@@ -1,0 +1,48 @@
+{
+ "name": "teacher_s1",
+ "params": 4781374,
+ "channels": [
+  84,
+  168,
+  336
+ ],
+ "blocks": [
+  2,
+  2,
+  2
+ ],
+ "epochs": 200,
+ "full_train": true,
+ "val_acc": 0.9682,
+ "cifar10_test_acc": 0.9682,
+ "cifar10_test_acc_flipTTA": 0.9714,
+ "minutes": 30.44850125312805,
+ "args": {
+  "name": "teacher_s1",
+  "channels": [
+   84,
+   168,
+   336
+  ],
+  "blocks": [
+   2,
+   2,
+   2
+  ],
+  "kernel": 3,
+  "skip_kernel": 1,
+  "epochs": 200,
+  "bs": 128,
+  "lr": 0.1,
+  "wd": 0.0005,
+  "smoothing": 0.1,
+  "cutout": 16,
+  "warmup": 2,
+  "trivialaug": true,
+  "full_train": true,
+  "seed": 1,
+  "teachers": [],
+  "kd_alpha": 0.1,
+  "kd_T": 1.0
+ }
+}

@@ -6,5 +6,16 @@ project1.pdf
 # model weights: keep only the final model
 runs/*/model.pt
 !runs/final_B_ta_e200/model.pt
+!runs/kd10_B_e1200_cmT_s3/model.pt
+!runs/kd8_B_e1200_cmT/model.pt
 __pycache__/
 .ipynb_checkpoints/
+# LaTeX build files and the old draft
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.log
+report/report.html
+# stopped run, stray downloads
+runs/_stopped_local_wide_t1/
+hpc__*

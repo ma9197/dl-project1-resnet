@@ -71,13 +71,28 @@ def count_params(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
+def load_run(name, device="cuda"):
+    """Load the trained model saved in runs/<name>/model.pt (in eval mode)."""
+    ck = torch.load(HERE / "runs" / name / "model.pt", map_location=device, weights_only=False)
+    a = ck["args"]
+    m = ResNet(a["channels"], a["blocks"], a["kernel"], a["skip_kernel"]).to(device).to(memory_format=torch.channels_last)
+    m.load_state_dict(ck["model"])
+    return m.eval()
+
+
 # ----------------------------------------------------------------------------- data
 def load_cifar(device):
-    tr = datasets.CIFAR10(HERE / "data", train=True, download=False)
-    te = datasets.CIFAR10(HERE / "data", train=False, download=False)
+    npz = HERE / "data" / "cifar10.npz"  # same arrays as torchvision's copy (see make_npz.py), used on HPC
+    if npz.exists():
+        d = np.load(npz)
+        xtr, ytr, xte, yte = d["xtr"], d["ytr"].tolist(), d["xte"], d["yte"].tolist()
+    else:
+        tr = datasets.CIFAR10(HERE / "data", train=True, download=False)
+        te = datasets.CIFAR10(HERE / "data", train=False, download=False)
+        xtr, ytr, xte, yte = tr.data, tr.targets, te.data, te.targets
     f = lambda a: torch.from_numpy(a).permute(0, 3, 1, 2).contiguous()
-    return (f(tr.data).to(device), torch.tensor(tr.targets).to(device),
-            f(te.data).to(device), torch.tensor(te.targets).to(device))
+    return (f(xtr).to(device), torch.tensor(ytr).to(device),
+            f(xte).to(device), torch.tensor(yte).to(device))
 
 
 def normalize(x_uint8):
@@ -103,6 +118,17 @@ def augment(x, cutout=16):
         mask = ((yy - cy[:, None, None]).abs() < cutout // 2) & ((xx - cx[:, None, None]).abs() < cutout // 2)
         x = x.masked_fill(mask[:, None], 0.0)
     return x
+
+
+def cutmix(x, y):
+    """CutMix: paste a random box from a shuffled copy of the batch. Returns mixed x, second labels, kept fraction."""
+    perm = torch.randperm(x.shape[0], device=x.device)
+    half = int(32 * math.sqrt(1 - np.random.beta(1.0, 1.0))) // 2
+    cy, cx = np.random.randint(32), np.random.randint(32)
+    y0, y1, x0, x1 = max(cy - half, 0), min(cy + half, 32), max(cx - half, 0), min(cx + half, 32)
+    x = x.clone()
+    x[:, :, y0:y1, x0:x1] = x[perm, :, y0:y1, x0:x1]
+    return x, y[perm], 1 - (y1 - y0) * (x1 - x0) / 1024
 
 
 class TrivialAugDS(torch.utils.data.Dataset):
@@ -152,6 +178,12 @@ def main():
     ap.add_argument("--trivialaug", action="store_true", help="add TrivialAugmentWide (CPU workers)")
     ap.add_argument("--full-train", action="store_true", help="train on all 50k (no held-out validation split)")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--teachers", nargs="*", default=[], help="run names to distill from (their softmax is averaged)")
+    ap.add_argument("--kd-alpha", type=float, default=0.1, help="weight of the hard-label loss when distilling")
+    ap.add_argument("--kd-T", type=float, default=1.0, help="distillation temperature")
+    ap.add_argument("--cutmix", type=float, default=0.0, help="probability of applying CutMix to a batch")
+    ap.add_argument("--teacher-only", action="store_true",
+                    help="allow > 5M parameters (distillation teachers only; predict.py refuses such models)")
     a = ap.parse_args()
 
     torch.manual_seed(a.seed); np.random.seed(a.seed)
@@ -169,8 +201,10 @@ def main():
 
     model = ResNet(a.channels, a.blocks, a.kernel, a.skip_kernel).to(dev).to(memory_format=torch.channels_last)
     n_params = count_params(model)
-    assert n_params <= 5_000_000, f"{n_params:,} parameters > 5M"
+    assert n_params <= 5_000_000 or a.teacher_only, f"{n_params:,} parameters > 5M"
     print(f"{a.name}: channels {a.channels} blocks {a.blocks} | {n_params:,} params | train {len(xtr)}", flush=True)
+    # teachers see exactly the same augmented batch as the student ("consistent" distillation)
+    teachers = [load_run(t, dev) for t in a.teachers]
 
     decay, no_decay = [], []
     for n_, p in model.named_parameters():
@@ -203,9 +237,19 @@ def main():
         tl, tc = torch.zeros((), device=dev), torch.zeros((), device=dev)
         for xb_u8, yb in batches():
             xb = augment(normalize(xb_u8), a.cutout).contiguous(memory_format=torch.channels_last)
+            lam = 1.0
+            if a.cutmix and np.random.rand() < a.cutmix:
+                xb, yb2, lam = cutmix(xb, yb)
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 out = model(xb)
                 loss = F.cross_entropy(out.float(), yb, label_smoothing=a.smoothing)
+                if lam < 1:
+                    loss = lam * loss + (1 - lam) * F.cross_entropy(out.float(), yb2, label_smoothing=a.smoothing)
+                if teachers:
+                    with torch.no_grad():
+                        pt = torch.stack([t(xb).float().div(a.kd_T).softmax(1) for t in teachers]).mean(0)
+                    kd = F.kl_div(F.log_softmax(out.float() / a.kd_T, 1), pt, reduction="batchmean") * a.kd_T ** 2
+                    loss = a.kd_alpha * loss + (1 - a.kd_alpha) * kd
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step(); sched.step()

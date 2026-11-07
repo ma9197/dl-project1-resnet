@@ -1,0 +1,2 @@
+model kd_B_e300: 4,781,374 trainable parameters
+wrote D:\Files\NYU\Simestirs\Simestr 4 Fall 2026\Deep Learning\Project1\submissions\kd_B_e300.csv | 2000 rows | predicted class counts: [171, 220, 203, 210, 199, 210, 186, 204, 199, 198]

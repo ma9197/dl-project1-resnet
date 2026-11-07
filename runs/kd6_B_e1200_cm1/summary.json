@@ -1,0 +1,55 @@
+{
+ "name": "kd6_B_e1200_cm1",
+ "params": 4781374,
+ "channels": [
+  84,
+  168,
+  336
+ ],
+ "blocks": [
+  2,
+  2,
+  2
+ ],
+ "epochs": 1200,
+ "full_train": true,
+ "val_acc": 0.9769,
+ "cifar10_test_acc": 0.9769,
+ "cifar10_test_acc_flipTTA": 0.9777,
+ "minutes": 305.4756443540255,
+ "args": {
+  "name": "kd6_B_e1200_cm1",
+  "channels": [
+   84,
+   168,
+   336
+  ],
+  "blocks": [
+   2,
+   2,
+   2
+  ],
+  "kernel": 3,
+  "skip_kernel": 1,
+  "epochs": 1200,
+  "bs": 128,
+  "lr": 0.1,
+  "wd": 0.0005,
+  "smoothing": 0.1,
+  "cutout": 16,
+  "warmup": 2,
+  "trivialaug": true,
+  "full_train": true,
+  "seed": 0,
+  "teachers": [
+   "big_t1",
+   "big_t2",
+   "wide_t1",
+   "wide_t2"
+  ],
+  "kd_alpha": 0.1,
+  "kd_T": 1.0,
+  "cutmix": 1.0,
+  "teacher_only": false
+ }
+}

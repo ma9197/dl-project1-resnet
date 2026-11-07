@@ -1,0 +1,53 @@
+{
+ "name": "kd_B_e300",
+ "params": 4781374,
+ "channels": [
+  84,
+  168,
+  336
+ ],
+ "blocks": [
+  2,
+  2,
+  2
+ ],
+ "epochs": 300,
+ "full_train": true,
+ "val_acc": 0.971,
+ "cifar10_test_acc": 0.971,
+ "cifar10_test_acc_flipTTA": 0.9727,
+ "minutes": 102.51267325083414,
+ "args": {
+  "name": "kd_B_e300",
+  "channels": [
+   84,
+   168,
+   336
+  ],
+  "blocks": [
+   2,
+   2,
+   2
+  ],
+  "kernel": 3,
+  "skip_kernel": 1,
+  "epochs": 300,
+  "bs": 128,
+  "lr": 0.1,
+  "wd": 0.0005,
+  "smoothing": 0.1,
+  "cutout": 16,
+  "warmup": 2,
+  "trivialaug": true,
+  "full_train": true,
+  "seed": 0,
+  "teachers": [
+   "final_B_ta_e200",
+   "final_B_base_e200",
+   "teacher_s1",
+   "teacher_s2"
+  ],
+  "kd_alpha": 0.1,
+  "kd_T": 1.0
+ }
+}
